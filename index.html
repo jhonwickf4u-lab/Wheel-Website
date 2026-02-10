@@ -11,7 +11,7 @@
             --dark-bg: #0a0a0a;
             --panel-bg: #161616;
             --text-main: #ffffff;
-            --success: #00ff88; /* New color for success modal */
+            --success: #00ff88;
         }
 
         body { 
@@ -192,7 +192,6 @@
         }
 
         .store-logo {
-            /* UPDATED: Doubled size */
             width: 180px; 
             height: 180px;
             border-radius: 50%;
@@ -202,7 +201,6 @@
         }
 
         .admin-trigger-btn {
-            /* UPDATED: White background, black text */
             background: #ffffff;
             color: #000000;
             border: none;
@@ -289,13 +287,13 @@
     </div>
 
     <div class="side-panel">
-        <h2>سجل الجوائز</h2>
+        <h2>سجل الجوائز (History)</h2>
         <ul id="historyList" class="scroll-list">
             </ul>
     </div>
 
     <div class="side-panel">
-        <h2>قائمة الجوائز</h2>
+        <h2>قائمة الجوائز (List)</h2>
         <ul id="productList" class="scroll-list">
             </ul>
     </div>
@@ -415,20 +413,48 @@
 
     let wheelSegments = [...inventory];
     let spinsRemaining = 0;
+    // UPDATED: History Array
+    let historyData = [];
 
     // --- 3. STATE MANAGEMENT ---
     function loadState() {
+        // Load Spins
         const storedSpins = localStorage.getItem('spinsRemaining');
         if (storedSpins) {
             spinsRemaining = parseInt(storedSpins);
         } else {
             spinsRemaining = 0;
         }
+
+        // UPDATED: Load History
+        const storedHistory = localStorage.getItem('historyData');
+        if (storedHistory) {
+            try {
+                historyData = JSON.parse(storedHistory);
+                // Render all history items
+                // Reverse iterate to show newest first if we used push, 
+                // but we will use the array order we saved.
+                // NOTE: We append in reverse order in UI to keep list logic same.
+                // Let's clear list first
+                const list = document.getElementById('historyList');
+                list.innerHTML = "";
+                // Loop backwards so newest (top of array) stays at top
+                for (let i = historyData.length - 1; i >= 0; i--) {
+                    renderHistoryItem(historyData[i]);
+                }
+            } catch(e) {
+                console.error("Error parsing history", e);
+                historyData = [];
+            }
+        }
+
         updateUI();
     }
 
     function saveState() {
         localStorage.setItem('spinsRemaining', spinsRemaining);
+        // UPDATED: Save History
+        localStorage.setItem('historyData', JSON.stringify(historyData));
     }
 
     function updateUI() {
@@ -516,7 +542,6 @@
         updateActiveColors();
     }
 
-    // UPDATED: Now also updates the center dot color
     function updateActiveColors() {
         let normalizedRotation = currentRotation % (2 * Math.PI);
         if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI;
@@ -528,7 +553,7 @@
             const color = TIERS[activeSegment.rarity].color;
             document.getElementById('wheelArrow').style.background = color;
             document.getElementById('centerCapOuter').style.borderColor = color;
-            document.getElementById('centerDot').style.background = color; // Change center dot
+            document.getElementById('centerDot').style.background = color;
         }
     }
 
@@ -556,7 +581,8 @@
         if (isSpinning || spinsRemaining <= 0) return;
         
         spinsRemaining--;
-        saveState();
+        // Save state immediately to deduct spin
+        localStorage.setItem('spinsRemaining', spinsRemaining); 
         updateUI();
 
         isSpinning = true;
@@ -585,7 +611,12 @@
                 isSpinning = false;
                 currentRotation = finalRot; 
                 drawWheel();
-                addToHistory(result.item);
+                
+                // UPDATED: Save Logic here
+                historyData.push(result.item); // Add to data array
+                saveState(); // Save to local storage
+                renderHistoryItem(result.item); // Show in UI
+
                 showWinnerModal(result.item);
                 updateUI();
             }
@@ -594,7 +625,9 @@
     });
 
     // --- 8. UI HELPERS ---
-    function addToHistory(item) {
+    
+    // UPDATED: Separated Rendering logic from Data logic
+    function renderHistoryItem(item) {
         const list = document.getElementById('historyList');
         const li = document.createElement('li');
         const tierData = TIERS[item.rarity];
@@ -617,7 +650,6 @@
         document.getElementById('winnerModal').style.display = "none";
     }
 
-    // Success Modal Logic
     function openSuccessModal() {
         document.getElementById('successModal').style.display = "flex";
     }
@@ -642,11 +674,15 @@
             const numSpins = parseInt(spins);
             if (!isNaN(numSpins)) {
                 spinsRemaining = numSpins;
-                saveState();
+                
+                // UPDATED: Clear history only here
+                historyData = []; 
                 document.getElementById('historyList').innerHTML = ""; 
+                localStorage.removeItem('historyData'); // Clear from phone storage
+                
+                saveState(); // Save the new spin count (and empty history)
                 updateUI();
                 closeAdminModal();
-                // UPDATED: Show custom modal instead of alert
                 openSuccessModal();
             } else {
                 alert("أدخل رقم صحيح");
@@ -658,7 +694,7 @@
 
     // --- INIT ---
     window.onload = function() {
-        loadState();
+        loadState(); // This now loads history too
         initLists();
         drawWheel();
     };
@@ -672,4 +708,3 @@
 </script>
 </body>
 </html>
-
