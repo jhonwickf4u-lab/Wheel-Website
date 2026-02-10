@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عجلة حظ المهندس - Crypto Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #FFD700;
+            --dark-bg: #0a0a0a;
+            --panel-bg: #161616;
+            --text-main: #ffffff;
+        }
+
+        body { 
+            font-family: 'Cairo', sans-serif;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background: var(--dark-bg); 
+            color: var(--text-main);
+            padding: 20px; 
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            font-family: 'Cairo', sans-serif;
+            color: var(--gold);
+            text-transform: uppercase;
+            font-size: 3rem;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .main-layout {
+            display: flex;
+            justify-content: space-between; 
+            align-items: flex-start;
+            gap: 40px;
+            width: 100%;
+            max-width: 1800px; 
+            flex-wrap: wrap;
+            margin-bottom: 50px;
+        }
+
+        .side-panel {
+            flex: 1;
+            min-width: 300px;
+            max-width: 380px;
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            height: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .center-stage {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--gold);
+            font-size: 1.5rem;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+            background: #0f0f0f;
+            border-radius: 12px;
+            padding: 5px;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        li {
+            padding: 12px;
+            border-bottom: 1px solid #222;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        li:hover { background: #1a1a1a; }
+        li:last-child { border-bottom: none; }
+
+        .rarity-tag {
+            font-size: 0.8em;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #111;
+            font-weight: bold;
+            margin-right: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* Wheel Styles */
+        .wheel-wrapper {
+            position: relative;
+            padding: 20px;
+            background: #111;
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.8);
+            border: 5px solid #2a2a2a;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 700px; 
+            height: 700px;
+        }
+
+        canvas {
+            border-radius: 50%;
+            box-shadow: 0 0 0 8px #080808, 0 0 0 12px var(--gold);
+        }
+
+        .arrow {
+            position: absolute;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 80px;
+            background: var(--gold);
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+            transition: background 0.1s;
+        }
+
+        .center-cap-outer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background: #1e1e1e;
+            border-radius: 50%;
+            z-index: 5;
+            border: 5px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+            transition: border-color 0.1s;
+        }
+
+        .center-cap-inner {
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            border-radius: 50%;
+            transition: background 0.1s;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+            font-size: 2rem;
+            padding: 20px 80px;
+            margin-top: 50px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            width: 100%;
+            max-width: 400px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+        .spin-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .spin-btn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .reset-btn {
+            background: #d32f2f;
+            color: white;
+            padding: 12px;
+            width: 100%;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+        }
+        .reset-btn:hover { background: #b71c1c; }
+
+        /* Modal */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 100; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            background-color: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #1a1a1a;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            transform: scale(0.8);
+            animation: popIn 0.3s forwards;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        @keyframes popIn { to { transform: scale(1); } }
+        .modal-header { padding: 30px; background: var(--gold); color: #000; }
+        .modal-header h2 { margin: 0; font-size: 2rem; }
+        .modal-body { padding: 30px; }
+        .prize-text { font-size: 1.5rem; margin: 20px 0; color: #fff; }
+        .continue-btn {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            padding: 10px 40px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+        .continue-btn:hover { background: var(--gold); color: #000; }
+
+        @media (max-width: 1400px) {
+            .main-layout { flex-direction: column; align-items: center; justify-content: center; }
+            .side-panel { width: 100%; max-width: 600px; order: 2; margin-top: 20px; height: 500px; }
+            .center-stage { order: 1; margin-bottom: 30px; }
+        }
+        @media (max-width: 750px) {
+            .wheel-container { width: 340px; height: 340px; }
+            canvas { width: 340px; height: 340px; }
+            h1 { font-size: 2rem; }
+            .arrow { top: -25px; width: 40px; height: 50px; }
+            .center-cap-outer { width: 60px; height: 60px; }
+            .center-cap-inner { width: 25px; height: 25px; }
+            .spin-btn { font-size: 1.4rem; padding: 15px 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>عجلة حظ المهندس</h1>
+
+<div class="main-layout">
+    <div class="side-panel">
+        <h2>سجل الجوائز</h2>
+        <ul id="historyList"></ul>
+        <button class="reset-btn" onclick="clearHistory()">مسح السجل</button>
+    </div>
+
+    <div class="center-stage">
+        <div class="wheel-wrapper">
+            <div class="wheel-container">
+                <div class="arrow" id="wheelArrow"></div>
+                <canvas id="wheelCanvas" width="700" height="700"></canvas>
+                <div class="center-cap-outer" id="centerCapOuter">
+                    <div class="center-cap-inner" id="centerCapInner"></div>
+                </div>
+            </div>
+        </div>
+        <button id="spinBtn" class="spin-btn">فر و اربح</button>
+    </div>
+
+    <div class="side-panel">
+        <h2>قائمة الجوائز</h2>
+        <ul id="productList"></ul>
+    </div>
+</div>
+
+<div id="winnerModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" id="modalHeader">
+            <h2 id="modalTitle">مبروك!</h2>
+        </div>
+        <div class="modal-body">
+            <div class="prize-text" id="modalPrizeName"></div>
+            <button class="continue-btn" onclick="closeModal()">استمرار</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const TIERS = {
+        "Common":    { label: "عادي", color: "#f0f0f0", text: "#000000" },
+        "Good":      { label: "زوين", color: "#a0a0a0", text: "#000000" },
+        "Rare":      { label: "حلو", color: "#00ff88", text: "#000000" },
+        "Epic":      { label: "حلو حيل", color: "#00ccff", text: "#000000" },
+        "Legendary": { label: "يخبل", color: "#bd00ff", text: "#FFFFFF" },
+        "Mythic":    { label: "ممتاز", color: "#ff0055", text: "#FFFFFF" },
+        "Jackpot":   { label: "انطيني حظك", color: "#ffaa00", text: "#000000" }
+    };
+
+    const inventory = [
+        { name: "قلم ماركة فلامنجو شفاف", chance: 7.85, rarity: "Common" },
+        { name: "قلم ماركة فلامنجو خشب", chance: 7.85, rarity: "Common" },
+        { name: "مساحة 2 ب", chance: 7.85, rarity: "Common" },
+        { name: "قلم كلارو", chance: 7.85, rarity: "Common" },
+        { name: "مساحة ماركة واي +", chance: 7.85, rarity: "Common" },
+        
+        { name: "مساحة ماركة دلي ابيض او اسود", chance: 3.5, rarity: "Good" },
+        { name: "قلم ماركة بوز", chance: 3.5, rarity: "Good" },
+        { name: "مساحة ماركة دلي مربعة الوان", chance: 3.5, rarity: "Good" },
+        { name: "مساحة ماركة دوم ابيض او اسود", chance: 3.5, rarity: "Good" },
+        { name: "مساحة ماركة دلي مثلجات", chance: 3.5, rarity: "Good" },
+        { name: "مقطاطة ماركة اميجو", chance: 3.5, rarity: "Good" },
+        { name: "قلم دلي سوفت سريع الجفاف", chance: 3.5, rarity: "Good" },
+        { name: "قلم لكزي", chance: 3.5, rarity: "Good" },
+        { name: "شريط شفاف ملون", chance: 3.5, rarity: "Good" },
+
+        { name: "قلم ميكانيك اختياري", chance: 2.5, rarity: "Rare" },
+        { name: "مساحة ماركة ستدلر ابيض او اسود", chance: 2.5, rarity: "Rare" },
+        { name: "قلم ماركة دلي 4 الوان خط اسود", chance: 2.5, rarity: "Rare" },
+
+        { name: "مقطاطة ستدلر", chance: 2, rarity: "Epic" },
+        { name: "هايلايت دلي لون اختياري", chance: 2, rarity: "Epic" },
+        { name: "نوت لاصق جزئين او اربع اختياري", chance: 2, rarity: "Epic" },
+        { name: "نوت لاصق اسهم", chance: 2, rarity: "Epic" },
+        { name: "نوت لاصق الوان فخمة", chance: 2, rarity: "Epic" },
+        { name: "قلم بايلوت", chance: 2, rarity: "Epic" },
+        { name: "قلم واي +", chance: 2, rarity: "Epic" },
+
+        { name: "سيت أقلام رصاص ماركة دلي قياس 2 ب", chance: 1, rarity: "Legendary" },
+        { name: "نوت لاصق كبير كل الاشكال", chance: 1, rarity: "Legendary" },
+        { name: "هايلايت ماركة ستدلر", chance: 1, rarity: "Legendary" },
+        { name: "مساحة بايلوت ابيض صغير", chance: 1, rarity: "Legendary" },
+        { name: "سيت أقلام رصاص ماركة دلي اشكال لطيفة قياس 2 ب", chance: 1, rarity: "Legendary" },
+
+        { name: "خصم 2000 على الاستنساخ", chance: 0.5, rarity: "Mythic" },
+        { name: "مساحة اشكال اكل", chance: 0.5, rarity: "Mythic" },
+        { name: "نوت لاصق كبير", chance: 0.5, rarity: "Mythic" },
+        { name: "مساحة ستدلر كبير", chance: 0.5, rarity: "Mythic" },
+        { name: "نوت لاصق اشكال حيوانات", chance: 0.5, rarity: "Mythic" },
+
+        { name: "سيت هايلايتر ماركة دلي", chance: 0.25, rarity: "Jackpot" }
+    ];
+
+    let wheelSegments = [...inventory];
+    
+    // --- CRYPTO RANDOMNESS (Fair & Uniform) ---
+    function getCryptoRandom() {
+        const buffer = new Uint32Array(1);
+        window.crypto.getRandomValues(buffer);
+        // Returns number between 0 and 1 (inclusive of 0, exclusive of 1)
+        return buffer[0] / (0xffffffff + 1);
+    }
+
+    function shuffleArray(array) {
+        // Updated Shuffle to use Crypto Randomness for perfect mixing
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(getCryptoRandom() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+    shuffleArray(wheelSegments);
+
+    const sliceAngle = (2 * Math.PI) / wheelSegments.length;
+
+    // --- SETUP UI ---
+    function initLists() {
+        const prodList = document.getElementById('productList');
+        prodList.innerHTML = "";
+        inventory.forEach(item => {
+            const tierData = TIERS[item.rarity];
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${item.name}</span>
+                <span class="rarity-tag" style="background:${tierData.color}; color:${tierData.text}">
+                    ${tierData.label}
+                </span>
+            `;
+            prodList.appendChild(li);
+        });
+    }
+
+    // --- WHEEL DRAWING ---
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    let currentRotation = 0;
+
+    function drawWheel() {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = (canvas.width / 2) - 10;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        wheelSegments.forEach((item, index) => {
+            const tierData = TIERS[item.rarity];
+            
+            const startAngle = (index * sliceAngle) + currentRotation;
+            const endAngle = ((index + 1) * sliceAngle) + currentRotation;
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.fillStyle = tierData.color;
+            ctx.fill();
+            
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "rgba(0,0,0,0.1)";
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(centerX, centerY);
+            ctx.rotate(startAngle + sliceAngle / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = tierData.text;
+            
+            let fontSize = 18; 
+            if (item.name.length > 20) fontSize = 14;
+
+            ctx.font = `bold ${fontSize}px 'Cairo'`;
+            ctx.fillText(item.name, radius - 20, 6);
+            ctx.restore();
+        });
+        
+        updateActiveColors();
+    }
+
+    function updateActiveColors() {
+        let normalizedRotation = currentRotation % (2 * Math.PI);
+        if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI;
+        let arrowAngle = (3 * Math.PI / 2) - normalizedRotation;
+        if (arrowAngle < 0) arrowAngle += 2 * Math.PI;
+
+        const index = Math.floor(arrowAngle / sliceAngle) % wheelSegments.length;
+        const activeSegment = wheelSegments[index];
+
+        if (activeSegment) {
+            const color = TIERS[activeSegment.rarity].color;
+            document.getElementById('wheelArrow').style.background = color;
+            document.getElementById('centerCapOuter').style.borderColor = color;
+            document.getElementById('centerCapInner').style.background = color;
+        }
+    }
+
+    // --- LOGIC (Crypto + Physics) ---
+    function pickWinner() {
+        // 1. Use CRYPTO Randomness for the probability check
+        // This ensures uniform distribution (solves the repetition problem)
+        let random = getCryptoRandom() * 100;
+        
+        let runningSum = 0;
+        let winningItem = null;
+
+        // Iterate through inventory to find winner based on weighted chance
+        for (let i = 0; i < inventory.length; i++) {
+            runningSum += inventory[i].chance;
+            if (random <= runningSum) {
+                winningItem = inventory[i];
+                break;
+            }
+        }
+        if(!winningItem) winningItem = inventory[inventory.length - 1];
+
+        // 2. Find where this item is on the visual wheel
+        const visualIndex = wheelSegments.indexOf(winningItem);
+        
+        // 3. Calculated Physics
+        // Add Crypto jitter so it doesn't land in the exact center of the slice every time
+        const jitter = (getCryptoRandom() - 0.5) * (sliceAngle * 0.8);
+        const targetSliceCenter = (visualIndex * sliceAngle) + (sliceAngle / 2) + jitter;
+
+        return { item: winningItem, sliceCenter: targetSliceCenter };
+    }
+
+    // --- ANIMATION (Simulation of Physics) ---
+    let isSpinning = false;
+
+    document.getElementById('spinBtn').addEventListener('click', () => {
+        if (isSpinning) return;
+        isSpinning = true;
+        document.getElementById('spinBtn').disabled = true;
+
+        const result = pickWinner();
+        
+        // Calculate stop point (270 degrees / Top)
+        let targetRotation = (3 * Math.PI / 2) - result.sliceCenter;
+        
+        // Spin counts: Use a random number of extra spins between 8 and 12 for realism
+        const extraSpins = 2 * Math.PI * (8 + Math.floor(getCryptoRandom() * 4)); 
+        
+        const currentMod = currentRotation % (2 * Math.PI);
+        let finalRot = currentRotation + extraSpins + (targetRotation - currentMod);
+        
+        // Ensure forward movement
+        if (finalRot - currentRotation < extraSpins) finalRot += 2 * Math.PI;
+
+        // Increase duration for heavy wheel feel
+        const duration = 6000; 
+        let startTime = null;
+        const startRot = currentRotation;
+
+        function animate(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = timestamp - startTime;
+            
+            // Custom Easing: "OutQuint"
+            // Starts fast, takes a LONG time to settle (simulates heavy friction)
+            const t = progress / duration;
+            const ease = 1 - Math.pow(1 - t, 5); 
+            
+            if (progress < duration) {
+                currentRotation = startRot + (finalRot - startRot) * ease;
+                drawWheel();
+                requestAnimationFrame(animate);
+            } else {
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                currentRotation = finalRot; 
+                drawWheel();
+                addToHistory(result.item);
+                showWinnerModal(result.item);
+            }
+        }
+        requestAnimationFrame(animate);
+    });
+
+    // --- HISTORY & MODAL ---
+    function addToHistory(item) {
+        const list = document.getElementById('historyList');
+        const li = document.createElement('li');
+        const tierData = TIERS[item.rarity];
+        li.style.borderLeft = `5px solid ${tierData.color}`;
+        li.innerHTML = `<span>${item.name}</span><span class="rarity-tag" style="background:${tierData.color}; color:${tierData.text}">${tierData.label}</span>`;
+        list.prepend(li);
+    }
+
+    function showWinnerModal(item) {
+        const modal = document.getElementById('winnerModal');
+        const header = document.getElementById('modalHeader');
+        const title = document.getElementById('modalTitle');
+        const prizeName = document.getElementById('modalPrizeName');
+        const tierData = TIERS[item.rarity];
+        
+        header.style.background = tierData.color;
+        header.style.color = tierData.text; 
+        title.style.color = tierData.text;
+        prizeName.innerHTML = `مبروك ربحت <br><span style="color:${tierData.color}; font-weight:bold">${item.name}</span>`;
+        modal.style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById('winnerModal').style.display = "none";
+    }
+
+    function clearHistory() {
+        document.getElementById('historyList').innerHTML = "";
+    }
+
+    initLists();
+    drawWheel();
+</script>
+</body>
+</html>
